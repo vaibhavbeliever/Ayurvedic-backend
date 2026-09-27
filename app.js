@@ -1,7 +1,8 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
-const { connectDB, getIsConnected } = require('./config/db');
+// const { connectDB, getIsConnected } = require('./config/db');
+const connectDB = require('./config/db');
 const consultationRoutes = require('./routes/consultationRoutes');
 
 const app = express();
@@ -19,7 +20,7 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.get('/api/health', (req, res) => {
   res.json({
     status: 'ok',
-    database: getIsConnected() ? 'MongoDB Connected' : 'Local Storage Fallback (MongoDB Disconnected)',
+    // database: getIsConnected() ? 'MongoDB Connected' : 'Local Storage Fallback (MongoDB Disconnected)',
     timestamp: new Date().toISOString(),
   });
 });
