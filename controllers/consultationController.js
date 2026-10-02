@@ -56,9 +56,12 @@ exports.createConsultation = async (req, res) => {
         fullName: patient?.fullName || responses?.fullName || 'Anonymous Patient',
         email: patient?.email || responses?.email || '',
         phone: patient?.phone || responses?.phone || '',
+        address: patient?.address || responses?.address || '',
         dob: patient?.dob || responses?.dob || '',
-        sexAtBirth: responses?.sexAtBirth || '',
-        occupation: responses?.occupation || '',
+        timeOfBirth: patient?.timeOfBirth || responses?.timeOfBirth || '',
+        placeOfBirth: patient?.placeOfBirth || responses?.placeOfBirth || '',
+        sexAtBirth: patient?.sexAtBirth || responses?.sexAtBirth || '',
+        occupation: patient?.occupation || responses?.occupation || '',
       },
       practitionerNotes: '',
       doshaAssessment: { primaryDosha: '', notes: '' },
@@ -110,6 +113,7 @@ exports.getAllConsultations = async (req, res) => {
           { 'patient.fullName': regex },
           { 'patient.email': regex },
           { 'patient.phone': regex },
+          { 'patient.address': regex },
           { referenceId: regex },
         ];
       }
@@ -136,8 +140,15 @@ exports.getAllConsultations = async (req, res) => {
         const name = (r.patient?.fullName || '').toLowerCase();
         const email = (r.patient?.email || '').toLowerCase();
         const phone = (r.patient?.phone || '').toLowerCase();
+        const address = (r.patient?.address || '').toLowerCase();
         const ref = (r.referenceId || '').toLowerCase();
-        return name.includes(q) || email.includes(q) || phone.includes(q) || ref.includes(q);
+        return (
+          name.includes(q) ||
+          email.includes(q) ||
+          phone.includes(q) ||
+          address.includes(q) ||
+          ref.includes(q)
+        );
       });
     }
 

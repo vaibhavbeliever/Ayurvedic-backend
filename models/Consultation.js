@@ -17,7 +17,10 @@ const ConsultationSchema = new mongoose.Schema(
       fullName: { type: String, required: true, trim: true },
       email: { type: String, trim: true, default: '' },
       phone: { type: String, trim: true, default: '' },
+      address: { type: String, trim: true, default: '' },
       dob: { type: String, default: '' },
+      timeOfBirth: { type: String, default: '' },
+      placeOfBirth: { type: String, default: '' },
       sexAtBirth: { type: String, default: '' },
       occupation: { type: String, default: '' },
     },
@@ -50,4 +53,3 @@ ConsultationSchema.methods.toClient = function () {
 };
 
 module.exports = mongoose.model('Consultation', ConsultationSchema);
-
