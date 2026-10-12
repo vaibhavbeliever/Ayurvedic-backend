@@ -39,12 +39,20 @@ const ConsultationSchema = new mongoose.Schema(
     submittedAt: {
       type: Date,
       default: Date.now,
+      index: true,
     },
   },
   {
     timestamps: true,
   }
 );
+
+// Indexes for high performance querying, filtering, and sorting
+ConsultationSchema.index({ status: 1, submittedAt: -1 });
+ConsultationSchema.index({ 'patient.fullName': 1 });
+ConsultationSchema.index({ 'patient.email': 1 });
+ConsultationSchema.index({ 'patient.phone': 1 });
+ConsultationSchema.index({ 'patient.address': 1 });
 
 ConsultationSchema.methods.toClient = function () {
   const obj = this.toObject();

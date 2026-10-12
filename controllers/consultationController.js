@@ -60,8 +60,8 @@ exports.createConsultation = async (req, res) => {
         dob: patient?.dob || responses?.dob || '',
         timeOfBirth: patient?.timeOfBirth || responses?.timeOfBirth || '',
         placeOfBirth: patient?.placeOfBirth || responses?.placeOfBirth || '',
-        sexAtBirth: patient?.sexAtBirth || responses?.sexAtBirth || '',
-        occupation: patient?.occupation || responses?.occupation || '',
+        sexAtBirth: responses?.sexAtBirth || '',
+        occupation: responses?.occupation || '',
       },
       practitionerNotes: '',
       doshaAssessment: { primaryDosha: '', notes: '' },
@@ -95,10 +95,10 @@ exports.createConsultation = async (req, res) => {
   }
 };
 
-// 2. Get All Consultations (with search & filter)
+// 2. Get All Consultations (with search & filter - High Performance)
 exports.getAllConsultations = async (req, res) => {
   try {
-    const { search, status } = req.query;
+    const { search, status, includeResponses } = req.query;
 
     if (getIsConnected()) {
       const query = {};
@@ -118,7 +118,14 @@ exports.getAllConsultations = async (req, res) => {
         ];
       }
 
-      const records = await Consultation.find(query).sort({ submittedAt: -1, createdAt: -1 });
+      // High-performance lean projection: exclude heavy responses (base64 images) unless explicitly requested
+      let queryBuilder = Consultation.find(query).sort({ submittedAt: -1, createdAt: -1 });
+
+      if (includeResponses !== 'true') {
+        queryBuilder = queryBuilder.select('referenceId status patient practitionerNotes doshaAssessment submittedAt createdAt');
+      }
+
+      const records = await queryBuilder.lean();
       return res.json({
         success: true,
         source: 'mongodb',
@@ -142,13 +149,15 @@ exports.getAllConsultations = async (req, res) => {
         const phone = (r.patient?.phone || '').toLowerCase();
         const address = (r.patient?.address || '').toLowerCase();
         const ref = (r.referenceId || '').toLowerCase();
-        return (
-          name.includes(q) ||
-          email.includes(q) ||
-          phone.includes(q) ||
-          address.includes(q) ||
-          ref.includes(q)
-        );
+        return name.includes(q) || email.includes(q) || phone.includes(q) || address.includes(q) || ref.includes(q);
+      });
+    }
+
+    // Strip responses in fallback if not requested to keep response ultra fast
+    if (includeResponses !== 'true') {
+      records = records.map((r) => {
+        const { responses: _omitted, ...rest } = r;
+        return rest;
       });
     }
 
@@ -172,10 +181,10 @@ exports.getConsultationById = async (req, res) => {
     if (getIsConnected()) {
       let record = null;
       if (id.match(/^[0-9a-fA-F]{24}$/)) {
-        record = await Consultation.findById(id);
+        record = await Consultation.findById(id).lean();
       }
       if (!record) {
-        record = await Consultation.findOne({ referenceId: id });
+        record = await Consultation.findOne({ referenceId: id }).lean();
       }
 
       if (!record) {
